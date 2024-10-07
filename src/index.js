@@ -53,6 +53,14 @@ async function sendMessage( payload, api_key, chat_id ) {
 			};
 
 			break;
+		case 'file':
+			endpoint = 'sendDocument';
+			data = {
+				chat_id: chat_id,
+				caption: payload.text,
+				document: payload.file,
+			};
+			break;
 		default:
 			throw new Error('invalid message type');
 	}
@@ -86,9 +94,10 @@ async function handleRequest(request) {
 	const api_key = body.api_key ?? null;
 	const chat_id = body.chat_id ?? null;
 	const payload = {
-		type: body.image ? 'image' : 'text',
+		type: body.file ? 'file' : body.image ? 'image' : 'text',
 		text: body.text ?? null,
 		image: body.image ?? null,
+		file: body.file ?? null,
 	}
 
 	if ( !api_key ) {
@@ -122,7 +131,7 @@ async function handleRequest(request) {
 		}, 400);
 	}
 
-	if ( !payload.text & !payload.image) {
+	if ( !payload.text & !payload.image && !payload.file ) {
 		return sendResponse({
 			status: 'error',
 			message: 'Payload is missing',
